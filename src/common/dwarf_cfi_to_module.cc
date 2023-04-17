@@ -180,7 +180,7 @@ bool DwarfCFIToModule::Entry(size_t offset, uint64_t address, uint64_t length,
   // need to check them here.
 
   // Get ready to collect entries.
-  entry_ = std::make_unique<Module::StackFrameEntry>();
+  entry_ = std::unique_ptr<Module::StackFrameEntry>(new Module::StackFrameEntry);
   entry_->address = address;
   entry_->size = length;
   entry_offset_ = offset;

@@ -45,7 +45,6 @@
 #include <algorithm>
 #include <map>
 #include <string>
-#include <string_view>
 #include <vector>
 // TODO(saugustine): Add support for compressed debug.
 // Also need to add configure tests for zlib.
@@ -113,8 +112,8 @@ const char kPLTFunctionSuffix[] = "@plt";
 
 // Replace callsites of this function to std::string_view::starts_with after
 // adopting C++20.
-bool StringViewStartsWith(std::string_view sv, std::string_view prefix) {
-  return sv.compare(0, prefix.size(), prefix) == 0;
+bool StringViewStartsWith(google_breakpad::StringView sv, google_breakpad::StringView prefix) {
+  return google_breakpad::StringView(sv.data(), prefix.size()).compare(prefix) == 0;
 }
 
 }  // namespace
@@ -208,7 +207,7 @@ class ElfSectionReader {
     if (header_.sh_type == SHT_NOBITS || header_.sh_size == 0)
       return;
     // extra sh_type check for string table.
-    std::string_view name{cname};
+    StringView name{cname};
     if ((name == ".strtab" || name == ".shstrtab") &&
         header_.sh_type != SHT_STRTAB) {
       fprintf(stderr,
@@ -369,7 +368,7 @@ class ElfReaderImpl {
       // "opd_section_" must always be checked for NULL before use.
       opd_section_ = GetSectionInfoByName(".opd", &opd_info_);
       for (unsigned int k = 0u; k < GetNumSections(); ++k) {
-        std::string_view name{GetSectionName(section_headers_[k].sh_name)};
+        StringView name{GetSectionName(section_headers_[k].sh_name)};
         if (StringViewStartsWith(name, ".text")) {
           base_for_text_ =
               section_headers_[k].sh_addr - section_headers_[k].sh_offset;
@@ -819,7 +818,7 @@ class ElfReaderImpl {
     // Debug sections are likely to be near the end, so reverse the
     // direction of iteration.
     for (int k = GetNumSections() - 1; k >= 0; --k) {
-      std::string_view name{GetSectionName(section_headers_[k].sh_name)};
+      StringView name{GetSectionName(section_headers_[k].sh_name)};
       if (StringViewStartsWith(name, ".debug") ||
           StringViewStartsWith(name, ".zdebug")) {
         return true;
@@ -1225,15 +1224,14 @@ const char* ElfReader::GetSectionInfoByName(const string& section_name,
   }
 }
 
-bool ElfReader::SectionNamesMatch(std::string_view name,
-                                  std::string_view sh_name) {
-  std::string_view debug_prefix{".debug_"};
-  std::string_view zdebug_prefix{".zdebug_"};
+bool ElfReader::SectionNamesMatch(StringView name,
+                                  StringView sh_name) {
+  StringView debug_prefix{".debug_"};
+  StringView zdebug_prefix{".zdebug_"};
   if (StringViewStartsWith(name, debug_prefix) &&
       StringViewStartsWith(sh_name, zdebug_prefix)) {
-    name.remove_prefix(debug_prefix.length());
-    sh_name.remove_prefix(zdebug_prefix.length());
-    return name == sh_name;
+    return StringView(name.data() + debug_prefix.size(), name.size() - debug_prefix.size())
+      == StringView(sh_name.data() + zdebug_prefix.size(), sh_name.size() - zdebug_prefix.size());
   }
   return name == sh_name;
 }

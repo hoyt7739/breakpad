@@ -138,7 +138,7 @@ bool StabsToModule::Line(uint64_t address, const char *name, int number) {
 }
 
 bool StabsToModule::Extern(const string& name, uint64_t address) {
-  auto ext = std::make_unique<Module::Extern>(address);
+  auto ext = std::unique_ptr<Module::Extern>(new Module::Extern(address));
   // Older libstdc++ demangle implementations can crash on unexpected
   // input, so be careful about what gets passed in.
   if (name.compare(0, 3, "__Z") == 0) {

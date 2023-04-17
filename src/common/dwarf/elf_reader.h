@@ -16,10 +16,10 @@
 #define COMMON_DWARF_ELF_READER_H__
 
 #include <string>
-#include <string_view>
 #include <vector>
 
 #include "common/dwarf/types.h"
+#include "common/string_view.h"
 #include "common/using_std_string.h"
 
 using std::vector;
@@ -146,8 +146,8 @@ class ElfReader {
   // appears in the elf-file, adjusting for compressed debug section
   // names.  For example, returns true if name == ".debug_abbrev" and
   // sh_name == ".zdebug_abbrev"
-  static bool SectionNamesMatch(std::string_view name,
-                                std::string_view sh_name);
+  static bool SectionNamesMatch(StringView name,
+                                StringView sh_name);
 
  private:
   // Lazily initialize impl32_ and return it.

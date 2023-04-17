@@ -46,6 +46,7 @@
 #include <iostream>
 #include <memory>
 #include <utility>
+#include <algorithm>
 
 namespace google_breakpad {
 
@@ -142,14 +143,14 @@ bool Module::AddFunction(Function* function) {
 
   // FUNCs are better than PUBLICs as they come with sizes, so remove an extern
   // with the same address if present.
-  Extern ext(function->address);
-  ExternSet::iterator it_ext = externs_.find(&ext);
+  std::unique_ptr<Extern> ext(new Extern(function->address));
+  ExternSet::iterator it_ext = externs_.find(ext);
   if (it_ext == externs_.end() &&
       architecture_ == "arm" &&
       (function->address & 0x1) == 0) {
     // ARM THUMB functions have bit 0 set. ARM64 does not have THUMB.
-    Extern arm_thumb_ext(function->address | 0x1);
-    it_ext = externs_.find(&arm_thumb_ext);
+    std::unique_ptr<Extern> arm_thumb_ext(new Extern(function->address | 0x1));
+    it_ext = externs_.find(arm_thumb_ext);
   }
   if (it_ext != externs_.end()) {
     if (enable_multiple_field_) {

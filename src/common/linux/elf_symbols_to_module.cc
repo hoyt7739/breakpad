@@ -163,7 +163,7 @@ bool ELFSymbolsToModule(const uint8_t* symtab_section,
   while(!iterator->at_end) {
     if (ELF32_ST_TYPE(iterator->info) == STT_FUNC &&
         iterator->shndx != SHN_UNDEF) {
-      auto ext = std::make_unique<Module::Extern>(iterator->value);
+      auto ext = std::unique_ptr<Module::Extern>(new Module::Extern(iterator->value));
       ext->name = SymbolString(iterator->name_offset, strings);
 #if !defined(__ANDROID__)  // Android NDK doesn't provide abi::__cxa_demangle.
       int status = 0;

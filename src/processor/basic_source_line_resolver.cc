@@ -262,7 +262,7 @@ void BasicSourceLineResolver::Module::ConstructInlineFrames(
     } else {
       new_frame->function_name = "<name omitted>";
     }
-    
+
     // Store call site file and line in current frame, which will be updated
     // later.
     new_frame->source_line = in->get()->call_site_line;
@@ -436,7 +436,7 @@ bool BasicSourceLineResolver::Module::ParseFile(char* file_line) {
   long index;
   char* filename;
   if (SymbolParseHelper::ParseFile(file_line, &index, &filename)) {
-    files_.insert(make_pair(index, string(filename)));
+    files_.emplace(int(index), string(filename));
     return true;
   }
   return false;
@@ -451,9 +451,9 @@ bool BasicSourceLineResolver::Module::ParseInlineOrigin(
   if (SymbolParseHelper::ParseInlineOrigin(inline_origin_line, &has_file_id,
                                            &origin_id, &source_file_id,
                                            &origin_name)) {
-    inline_origins_.insert(make_pair(
-        origin_id,
-        new InlineOrigin(has_file_id, source_file_id, origin_name)));
+    inline_origins_.emplace(
+        int(origin_id),
+        linked_ptr<InlineOrigin>(new InlineOrigin(has_file_id, source_file_id, origin_name)));
     return true;
   }
   return false;
